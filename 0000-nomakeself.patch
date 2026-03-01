@@ -1,0 +1,12 @@
+diff --git a/configure.py b/configure.py
+index 99b4db39..7575c501 100755
+--- a/configure.py
++++ b/configure.py
+@@ -2123,6 +2123,7 @@ class ToolCheck(CheckBase):
+         """
+         Checks for makeself[.sh].
+         """
++        return True
+ 
+         # Distributions such as Ubuntu ship makeself packages without a .sh suffix,
+         # our build tools use the original naming though (makeself.sh). Prefer the build tools if found.
