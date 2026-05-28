@@ -1,13 +1,13 @@
 app-id: org.virtualbox.VirtualBox
 runtime: org.kde.Platform
-runtime-version: "6.10"
+runtime-version: '6.10'
 sdk: org.kde.Sdk
 command: VirtualBox
 rename-icon: virtualbox
 rename-desktop-file: virtualbox.desktop
 finish-args:
   # Default path that VirtualBox places files at
-  - "--persist=VirtualBox VMs"
+  - --persist=VirtualBox VMs
   - --device=all
   - --share=ipc
   - --share=network
@@ -16,8 +16,8 @@ finish-args:
   - --socket=x11
   - --socket=pulseaudio
 cleanup:
-  - "*.a"
-  - "*.la"
+  - '*.a'
+  - '*.la'
   - /include
   - /lib/pkgconfig
   - /share/applications/mimeinfo.cache
@@ -90,8 +90,8 @@ modules:
         done
     sources:
       - type: archive
-        url: https://download.virtualbox.org/virtualbox/7.2.4/VirtualBox-7.2.4.tar.bz2
-        sha256: d281ec981b5f580211a0cedd1b75a1adcb0fbfcbb768d8c2bf4429f4763e8bbd
+        url: https://download.virtualbox.org/virtualbox/7.2.8/VirtualBox-7.2.8.tar.bz2
+        sha256: 0642ed4a12b7204cd30c0abbc2c10c1cc7ad55ce1756a01e86a16d4b6b066592
         x-checker-data:
           type: anitya
           project-id: 14449
@@ -99,11 +99,12 @@ modules:
           url-template: https://download.virtualbox.org/virtualbox/$version/VirtualBox-$version.tar.bz2
       - type: git
         url: https://github.com/cyberus-technology/virtualbox-kvm.git
-        tag: dev-20251103
+        tag: dev-20260201
         dest: virtualbox-kvm
         x-checker-data:
           type: git
           tag-pattern: ^dev-([\d]*)$
+        commit: d6acb7e6dd2e8cb4b1294b34cfe8e0d6667dfd72
       - type: file
         path: LocalConfig.kmk
       - type: file
@@ -112,17 +113,19 @@ modules:
       - shared-modules/SDL/SDL-1.2.15.json
       - shared-modules/glu/glu-9.json
       - name: pam
+        config-opts:
+          - -Dvendordir=${FLATPAK_PREFIX}/pam
         buildsystem: meson
         cleanup:
-          - "/bin"
-          - "/sbin"
-          - "/share/doc"
-          - "/lib/systemd"
-          - "/etc"
+          - /bin
+          - /sbin
+          - /share/doc
+          - /lib/systemd
+          - /etc
         sources:
           - type: archive
-            url: https://github.com/linux-pam/linux-pam/archive/refs/tags/v1.7.1.tar.gz
-            sha256: 82aadd97eb697965b577069c12046a4dd1be68361a9978c708698d2a1ee9b6d1
+            url: https://github.com/linux-pam/linux-pam/archive/refs/tags/v1.7.2.tar.gz
+            sha256: d7ce5cb6e07ee8603d8af41a672bcb515b9d27079ee309fb3f729a8020166694
             x-checker-data:
               type: anitya
               stable-only: true
@@ -130,10 +133,11 @@ modules:
               url-template: https://github.com/linux-pam/linux-pam/archive/refs/tags/v$version.tar.gz
       - name: gsoap
         cleanup:
-          - "/bin"
+          - /bin
         build-options:
           make-args:
             # Necessary because dependency resolution is not declared properly upstream
+            # FIXME: remove as this makes builds slower
             - -j1
           env:
             SOAPCPP2_IMPORTPATH: -DSOAPCPP2_IMPORT_PATH="${FLATPAK_DEST}/share/gsoap/import:${FLATPAK_DEST}/share/gsoap"
@@ -152,7 +156,7 @@ modules:
               url-template: https://downloads.sourceforge.net/gsoap2/gsoap_$version.zip
       - name: yasm
         cleanup:
-          - "*"
+          - '*'
         sources:
           - type: archive
             url: https://www.tortall.net/projects/yasm/releases/yasm-1.3.0.tar.gz
@@ -167,11 +171,11 @@ modules:
       - name: xmu
         buildsystem: autotools
         cleanup:
-          - "/share/doc"
+          - /share/doc
         sources:
           - type: archive
-            url: https://xorg.freedesktop.org/releases/individual/lib/libXmu-1.2.1.tar.xz
-            sha256: fcb27793248a39e5fcc5b9c4aec40cc0734b3ca76aac3d7d1c264e7f7e14e8b2
+            url: https://xorg.freedesktop.org/releases/individual/lib/libXmu-1.3.1.tar.xz
+            sha256: 81a99e94c4501e81c427cbaa4a11748b584933e94b7a156830c3621256857bc4
             x-checker-data:
               type: anitya
               project-id: 1785
@@ -179,9 +183,9 @@ modules:
               url-template: https://xorg.freedesktop.org/releases/individual/lib/libXmu-$version.tar.xz
       - name: lvm2
         cleanup:
-          - "/bin"
-          - "/sbin"
-          - "/libexec"
+          - /bin
+          - /sbin
+          - /libexec
         buildsystem: autotools
         # Prevents strip permission issues
         post-install:
@@ -191,10 +195,11 @@ modules:
         sources:
           - type: git
             url: https://gitlab.com/lvmteam/lvm2.git
-            tag: v2_03_37
+            tag: v2_03_41
             x-checker-data:
               type: git
               tag-pattern: ^v([\d_]+)$
+            commit: 539014d16099ee8d46318b49e9014332e2dc7ef3
         modules:
           - name: libaio
             no-autogen: true
