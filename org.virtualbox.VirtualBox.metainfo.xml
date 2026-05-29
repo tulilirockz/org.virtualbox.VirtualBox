@@ -53,6 +53,9 @@
     </screenshot>
   </screenshots>
   <releases>
+    <release version="7.2.6" date="2026-01-20">
+     <url type="details">https://www.virtualbox.org/wiki/Changelog-7.2#v0</url>
+    </release>
     <release version="7.2.0" date="2025-08-14">
       <url type="details">https://www.virtualbox.org/wiki/Changelog-7.2#v0</url>
     </release>

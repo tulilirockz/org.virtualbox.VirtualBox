@@ -7,14 +7,12 @@ rename-icon: virtualbox
 rename-desktop-file: virtualbox.desktop
 finish-args:
   # Default path that VirtualBox places files at
-  - --persist=VirtualBox VMs
   - --device=all
+  - --persist=VirtualBox VMs
   - --share=ipc
   - --share=network
-  # Wayland backend (currently!) makes it so you have an infinite screen on VBoxSVGA
-  # TODO: move to wayland socket once issues are solved upstream
-  - --socket=x11
   - --socket=pulseaudio
+  - --socket=wayland
 cleanup:
   - '*.a'
   - '*.la'
@@ -33,25 +31,13 @@ modules:
         # Makes it so virtualbox'es build system can find `XMU` from `/app/lib`
         LIBRARY_PATH: /app/lib/X11:/app/lib
     build-commands:
-      - echo "VBOX_GCC_OPT=$CXXFLAGS" >> LocalConfig.kmk
-      - patch -p1 -N -i ./virtualbox-kvm/patches/0001-NEM-Implement-KVM-backend.patch
-      # Disabling hardening is not recommended but EUID manipulation is not possible inside the flatpak sandbox yet
-      # Same-ish situation with the firefox flatpak
-      - |
-        ./configure \
-          --disable-docs \
-          --disable-extpack \
-          --disable-hardening \
-          --disable-java \
-          --disable-kmods \
-          --disable-vmmraw \
-          --enable-vde \
-          --ose \
-          --with-kvm \
-          --with-makeself=/usr/bin/echo
+      - echo "VBOX_GCC_OPT=$CXXFLAGS" | tee -a LocalConfig.kmk
+      - patch -p1 -N -i ./virtualbox-kvm/patches/*.patch
+      # Hardening is disabled because it requires privilege escalation/EUID manipulation.
+      - ./configure --disable-docs --disable-extpack --disable-hardening --disable-java
+        --disable-kmods --disable-vmmraw --enable-vde --ose --with-kvm --with-makeself=/usr/bin/echo
       - source ./env.sh ; kmk
-      - install -Dm0644 -t "/app/share/licenses/${FLATPAK_ID}/" COPYING
-      - install -Dm0644 -t "/app/share/licenses/${FLATPAK_ID}/" COPYING.CDDL
+      - install -Dm0644 -t "/app/share/licenses/${FLATPAK_ID}/" COPYING*
       - install -Dm0644 -t "${FLATPAK_DEST}/share/metainfo/" org.virtualbox.VirtualBox.metainfo.xml
       - |
         cd out/linux.*/release/bin
@@ -59,34 +45,24 @@ modules:
         for i in vbox-img vboximg-mount; do ln -s ../lib/virtualbox/"${i}" "${FLATPAK_DEST}/bin/${i}" ; done
         pushd icons
           for i in *; do
-            install -d "${FLATPAK_DEST}/share/icons/hicolor/${i}/mimetypes" "${FLATPAK_DEST}/share/icons/hicolor/${i}/apps"
-            cp "${i}/"* "${FLATPAK_DEST}/share/icons/hicolor/${i}/mimetypes"
-            cp "${i}/"* "${FLATPAK_DEST}/share/icons/hicolor/${i}/apps"
+            install -Dpm0644 -t "${FLATPAK_DEST}/share/icons/hicolor/${i}/mimetypes" "${i}/"*
+            install -Dpm0644 -t "${FLATPAK_DEST}/share/icons/hicolor/${i}/apps" "${i}/"*
           done
         popd
+        install -Dm0644 -t "${FLATPAK_DEST}/lib/virtualbox/" *.r0 VBoxEFI*.fd *.so
         install -Dm0644 -t "${FLATPAK_DEST}/share/applications/" virtualbox.desktop
         install -Dm0644 -t "${FLATPAK_DEST}/share/mime/packages/" virtualbox.xml
-        install -Dm0644 -t "${FLATPAK_DEST}/share/pixmaps/" VBox.png 
+        install -Dm0644 -t "${FLATPAK_DEST}/share/pixmaps/" VBox.png
         install -Dm0755 -t "${FLATPAK_DEST}/bin/" VBox.sh
-        install -Dm0644 -t "${FLATPAK_DEST}/lib/virtualbox/" *.r0 VBoxEFI*.fd
-        install -Dm0755 -t "${FLATPAK_DEST}/lib/virtualbox" VirtualBoxVM VBoxSDL VBoxHeadless VBoxNetAdpCtl VBoxNetDHCP VBoxNetNAT VirtualBox VBoxManage VBoxSVC VBoxExtPackHelperApp VBoxBalloonCtrl vbox-img vboximg-mount vboxwebsrv webtest *.so
         install -Dm0755 -t "${FLATPAK_DEST}/lib/virtualbox/components/" components/*
         install -Dm0755 -t "${FLATPAK_DEST}/lib/virtualbox/nls/" nls/*.qm
         install -Dm0755 -t "${FLATPAK_DEST}/lib/virtualbox/" VBoxCreateUSBNode.sh VBoxSysInfo.sh
+        install -Dm0755 -t "${FLATPAK_DEST}/lib/virtualbox/" Virtual* VBox* vbox* webtest
         mv 'UnattendedTemplates' "${FLATPAK_DEST}/lib/virtualbox/"
         ln -s VBox.sh ${FLATPAK_DEST}/bin/VBox
-        for i in \
-          VBoxAutostart \
-          VBoxBalloonCtrl \
-          VBoxBugReport \
-          VBoxHeadless \
-          VBoxManage \
-          VBoxSDL \
-          VirtualBox \
-          VirtualBoxVM \
-          vboxwebsrv; do \
-            ln -sf VBox "${FLATPAK_DEST}/bin/${i}" ; \
-            ln -sf VBox "${FLATPAK_DEST}/bin/${i,,}" ; \
+        for BINARY in VBoxAutostart VBoxBalloonCtrl VBoxBugReport VBoxHeadless VBoxManage VBoxSDL VirtualBox VirtualBoxVM vboxwebsrv; do \
+            ln -sf VBox "${FLATPAK_DEST}/bin/${BINARY}" ; \
+            ln -sf VBox "${FLATPAK_DEST}/bin/${BINARY,,}" ; \
         done
     sources:
       - type: archive
@@ -147,8 +123,8 @@ modules:
           - --enable-samples
         sources:
           - type: archive
-            url: https://downloads.sourceforge.net/gsoap2/gsoap_2.8.139.zip
-            sha256: 74d1d7854c8ff500729a3003fd07536e417f3e900aee2eeb2d9300d70e4c047b
+            url: https://downloads.sourceforge.net/gsoap2/gsoap_2.8.142.zip
+            sha256: 6d7196bd6591ec2977474c681e351b4a33eb5c2d64c9e2e6727b004f330b3752
             x-checker-data:
               type: anitya
               stable-only: true
@@ -167,7 +143,7 @@ modules:
               url-template: https://www.tortall.net/projects/yasm/releases/yasm-$version.tar.gz
           - type: patch
             paths:
-              - ./0000-yasm-gcc-15.patch
+              - 0000-yasm-gcc-15.patch
       - name: xmu
         buildsystem: autotools
         cleanup:
@@ -189,9 +165,7 @@ modules:
         buildsystem: autotools
         # Prevents strip permission issues
         post-install:
-          - chmod 755 "${FLATPAK_DEST}/lib"/libdevmapper*
-          - chmod 755 "${FLATPAK_DEST}/bin"/*
-          - chmod 755 "${FLATPAK_DEST}/sbin"/*
+          - chmod 755 "${FLATPAK_DEST}/bin"/* "${FLATPAK_DEST}/sbin"/*
         sources:
           - type: git
             url: https://gitlab.com/lvmteam/lvm2.git
