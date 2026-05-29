@@ -1,4 +1,4 @@
-# Virtualbox Flatpak (unofficial)
+# VirtualBox Flatpak (unofficial)
 
 Virtualbox packaged as a flatpak! - Uses [KVM support patches](https://github.com/cyberus-technology/virtualbox-kvm) provided by cyberus-technology to run virtual machines.
 
