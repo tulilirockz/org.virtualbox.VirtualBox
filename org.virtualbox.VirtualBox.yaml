@@ -1,6 +1,6 @@
 app-id: org.virtualbox.VirtualBox
 runtime: org.kde.Platform
-runtime-version: '6.10'
+runtime-version: '6.11'
 sdk: org.kde.Sdk
 command: VirtualBox
 rename-icon: virtualbox
@@ -124,7 +124,7 @@ modules:
         sources:
           - type: archive
             url: https://downloads.sourceforge.net/gsoap2/gsoap_2.8.142.zip
-            sha256: 6d7196bd6591ec2977474c681e351b4a33eb5c2d64c9e2e6727b004f330b3752
+            sha256: 66e25aedfff058ef724347302bc803c1b2089789b7dbefe6ca20964f379cb666
             x-checker-data:
               type: anitya
               stable-only: true
@@ -181,10 +181,10 @@ modules:
               - prefix=${FLATPAK_DEST}
             sources:
               - type: archive
-                url: https://releases.pagure.org/libaio/libaio-0.3.113.tar.gz
+                url: https://codeberg.org/jmoyer/libaio/releases/download/libaio-0.3.113/libaio-0.3.113.tar.gz
                 sha256: 2c44d1c5fd0d43752287c9ae1eb9c023f04ef848ea8d4aafa46e9aedb678200b
                 x-checker-data:
                   type: anitya
                   project-id: 1557
                   stable-only: true
-                  url-template: https://releases.pagure.org/libaio/libaio-$version.tar.gz
+                  url-template: https://codeberg.org/jmoyer/libaio/releases/download/libaio-$version/libaio-$version.tar.gz
